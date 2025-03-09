@@ -2,6 +2,8 @@ import User from "../models/userModels.js";
 import bcrypt from 'bcrypt'
 import { z } from "zod";
 import { generateTokenAndCookies } from "../lib/utils/genToken.js";
+import { Purchase } from "../models/purchaseModel.js";
+import { Course } from "../models/courseModels.js";
 
 export const signUp = async (req, res) => {
   try {
@@ -45,8 +47,6 @@ export const signUp = async (req, res) => {
   }
 };
 
-
-
 // User Login
 export const loginUser = async (req, res) => {
   try {
@@ -88,4 +88,23 @@ export const logOut = async (req, res) => {
         console.log('Error in logout', error)
         res.status(500).json({errors: "Error in logout"})
     }
+}
+
+
+export const purchase = async (req, res) => {
+  const userId = req.userId
+  try {
+      const purchased = await Purchase.find({userId})
+      let purchasedCourseId = []
+      for (let i = 0; i < purchased.length; i++) {
+        purchasedCourseId.push(purchased[i].courseId)
+      }
+      const courseData = await Course.find({
+        _id : {$in: purchasedCourseId}
+      })
+      res.status(200).json({purchased, courseData})
+  } catch (error) {
+      console.log(error, 'Error in purchase')
+      res.status(500).json({error: 'Error in Purchase'})
+  }
 }
